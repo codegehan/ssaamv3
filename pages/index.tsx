@@ -209,7 +209,7 @@ export default function LoginPage(): JSX.Element {
                 Protected by advanced security measures
               </p>
               <p className="text-xs text-gray-500">
-                Develop by <a href="https://www.facebook.com/codeGehan" target='_blank' className='underline'>codeGehan </a>
+                Develop by <a href="https://www.facebook.com/codeGehan" target='_blank' className='underline'>codeGehan </a> Version 3.0
               </p>
             </div>
           </div>
