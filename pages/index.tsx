@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useState, ChangeEvent, JSX } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -46,7 +47,8 @@ export default function LoginPage(): JSX.Element {
       const responseData = await response.json();
 
       if (response.ok) {
-        console.log('Response Data: ', responseData.user)
+        console.log(responseData.user[0])
+        localStorage.setItem("user", JSON.stringify(responseData.user[0]));
         toast.success("Login successfull!");
         setTimeout(() => {
           router.push("/dashboard")
@@ -200,16 +202,41 @@ export default function LoginPage(): JSX.Element {
             {/* Support links */}
             <div className="text-center space-y-2">
               <p className="text-sm text-gray-400">
+                No account?{' '}
+                <Link
+                  href="/register"
+                  className="text-cyan-400 hover:text-cyan-300 transition-colors duration-200 underline"
+                  target='_blank'
+                  rel="noopener noreferrer" 
+                >
+                  Register here
+                </Link>
+
+              </p>
+              <p className="text-sm text-gray-400">
                 Having trouble signing in?{' '}
-                <a href="https://www.facebook.com/profile.php?id=100095351062233" target='_blank' className="text-cyan-400 hover:text-cyan-300 transition-colors duration-200">
+                <Link
+                  href="https://www.facebook.com/profile.php?id=100095351062233"
+                  className="text-cyan-400 hover:text-cyan-300 transition-colors duration-200 underline"
+                  target='_blank'
+                  rel="noopener noreferrer" 
+                >
                   Contact Support
-                </a>
+                </Link>
               </p>
               <p className="text-xs text-gray-500">
                 Protected by advanced security measures
               </p>
-              <p className="text-xs text-gray-500">
-                Develop by <a href="https://www.facebook.com/codeGehan" target='_blank' className='underline'>codeGehan </a> Version 3.0
+              <p className='text-sm text-gray-400'>
+                Developed by:{' '}
+                <Link
+                  href="https://www.facebook.com/codeGehan"
+                  className="text-cyan-400 hover:text-cyan-300 transition-colors duration-200 underline"
+                  target='_blank'
+                  rel="noopener noreferrer" 
+                >
+                codeGehan
+                </Link>
               </p>
             </div>
           </div>

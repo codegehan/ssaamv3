@@ -6,10 +6,11 @@ export async function query<T extends RowDataPacket[]>(
   params: (string | number | boolean | null)[] = []
 ): Promise<T> {
   const connection = await mysql.createConnection({
-    host: "119.92.169.229",
-    user: "admin",
-    password: "!@#Admin123*",
-    database: "ssaam_2024_2025",
+    host: process.env.DBHOST,
+    port: Number(process.env.DBPORT),
+    user: process.env.DBUSERNAME,
+    password: process.env.DBPASSWORD,
+    database: process.env.DBNAME,
   });
 
   try {

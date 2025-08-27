@@ -1,8 +1,9 @@
 import { generateQRCode } from "@/lib/generateQR";
 import { GetServerSideProps } from "next";
-import { useRouter } from "next/router";
-import { JSX, useState } from "react";
+import { JSX, useEffect, useState } from "react";
 import nookies from "nookies";
+import { verifyToken } from "@/lib/jwt";
+import Image from "next/image";
 
 
 interface StudentDashboardProps {
@@ -15,17 +16,38 @@ interface StudentDashboardProps {
   };
 }
 
+interface StudentInfo {
+  email: string;
+  fname: string;
+  lname: string;
+  mname?: string;
+  suffix?: string;
+  major: string;
+  course: string;
+  program: string;
+  semester: string;
+  schoolyear: string;
+  student_id: string;
+  year_level: string;
+}
+
 // Student Dashboard Component
 export default function StudentDashboard({ user }: StudentDashboardProps): JSX.Element {
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
-  // const router = useRouter();
+  const [userInfo, setUserInfo] = useState<StudentInfo | null>(null);
 
-//   useEffect(() => {
-//     const token = localStorage.getItem('authToken');
-//     if (!token) {
-//         router.push('/');
-//     }
-//   }, [router]);
+  useEffect(() => {
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    try {
+      const userObj: StudentInfo = JSON.parse(storedUser);
+      setUserInfo(userObj);
+    } catch (error) {
+      console.error("Failed to parse user from localStorage:", error);
+    }
+  }
+}, []);
+
 
   const handleLogout = async () => {
     await fetch('/api/logout', { method: 'POST' });
@@ -103,15 +125,14 @@ export default function StudentDashboard({ user }: StudentDashboardProps): JSX.E
 
                 {/* Profile Info */}
                 <div className="flex-1 text-center md:text-left">
-                  <h2 className="text-3xl font-bold text-white mb-2">Sample Name</h2>
+                  <h2 className="text-3xl font-bold text-white mb-2 capitalize">{userInfo ? `${userInfo.fname} ${userInfo.mname ?? ""} ${userInfo.lname}` : "Loading..."}</h2>
                   {/* <h2 className="text-3xl font-bold text-white mb-2">{user.name}</h2> */}
                   
                   <div className="space-y-3">
                     <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
                       <span className="text-gray-400 text-sm font-medium">Student ID:</span>
                       <span className="text-white font-mono text-lg underline">
-                        {/* {user.studentId} */}
-                        SMP0001
+                        {userInfo ? `${userInfo.student_id}` : "Loading..."}
                       </span>
 
                       <span className="text-gray-400 text-sm font-medium">Status:</span>
@@ -123,20 +144,20 @@ export default function StudentDashboard({ user }: StudentDashboardProps): JSX.E
                     
                     <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
                       <span className="text-gray-400 text-sm font-medium">Department:</span>
-                      <span className="text-white font-mono text-lg underline">
-                        College of Computing Studies
+                      <span className="text-white font-mono text-lg underline capitalize">
+                        {userInfo ? `${userInfo.course}` : "Loading..."}
                       </span>
                     </div>
                     <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
                       <span className="text-gray-400 text-sm font-medium">Program:</span>
-                      <span className="text-white font-mono text-lg underline">
-                        Bachelor of Science in Computer Science
+                      <span className="text-white font-mono text-lg underline capitalize">
+                        {userInfo ? `${userInfo.program}` : "Loading..."}
                       </span>
                     </div>
                     <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-4">
                       <span className="text-gray-400 text-sm font-medium">Year Level:</span>
-                      <span className="text-white font-mono text-lg underline">
-                        3rd year
+                      <span className="text-white font-mono text-lg underline capitalize">
+                        {userInfo ? `${userInfo.year_level}` : "Loading..."}
                       </span>
                     </div>
                   </div>
@@ -154,11 +175,18 @@ export default function StudentDashboard({ user }: StudentDashboardProps): JSX.E
                 
                 {/* QR Code Display */}
                 <div className="bg-white rounded-xl p-4 mb-6 mx-auto w-fit">
-                  <img
+                  {/* <img
                     // src={generateQRCode(user.studentId)}
-                    src={generateQRCode("SMP0001")}
+                    src={generateQRCode(userInfo?.student_id || "")}
                     alt="Student QR Code"
                     className="w-48 h-48 mx-auto"
+                  /> */}
+                  <Image
+                    src={generateQRCode(userInfo?.student_id || "")}
+                    alt="Student QR Code"
+                    width={192}   // matches w-48
+                    height={192}  // matches h-48
+                    className="mx-auto"
                   />
                 </div>
                 
@@ -203,6 +231,7 @@ export default function StudentDashboard({ user }: StudentDashboardProps): JSX.E
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const cookies = nookies.get(ctx);
+  const token = cookies.authToken;
 
   // If no authToken, redirect to login
   if (!cookies.authToken) {
@@ -214,5 +243,17 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
     };
   }
 
-  return { props: {} };
+  try {
+    await verifyToken(token);
+    return { props: {} };
+  } catch (err) {
+    console.error("Token verification failed:", err);
+
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
+  }
 };
