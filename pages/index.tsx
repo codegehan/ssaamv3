@@ -206,8 +206,6 @@ export default function LoginPage(): JSX.Element {
                 <Link
                   href="/register"
                   className="text-cyan-400 hover:text-cyan-300 transition-colors duration-200 underline"
-                  target='_blank'
-                  rel="noopener noreferrer" 
                 >
                   Register here
                 </Link>
